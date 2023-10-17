@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  mqtt-broker:
+    image: eclipse-mosquitto:latest
+    user: mosquitto
+    volumes:
+      - ./config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./log:/mosquitto/log/
+      - data:/mosquitto/data
+    ports:
+      - 1883:1883
+    networks:
+      - mqtt-net
+  mqtt-pub:
+    image: eclipse-mosquitto:latest
+    command: sh -c "mosquitto_pub -h mqtt-broker -t mqtt-topic -m 'Hello World'"
+    depends_on:
+      - mqtt-broker
+    networks:
+      - mqtt-net
+  mqtt-sub:
+    image: eclipse-mosquitto:latest
+    command: sh -c "mosquitto_sub -h mqtt-broker -t mqtt-topic"
+    depends_on:
+      - mqtt-broker
+    networks:
+      - mqtt-net
+
+networks:
+  mqtt-net:
+    driver: bridge
+
+volumes:
+  data:
+    name: "mqtt-broker-data"
